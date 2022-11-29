@@ -62,10 +62,39 @@ function process(obj, parentElement, schema) {
 
 function extract(htmlString, schema) {
     const dom = new jsdom.JSDOM(htmlString);
+    var obj = {};
+    var rootEl = dom.window.document.querySelector(":root");
+    if (Array.isArray(schema)) {
+        for (var s of schema) {
+            process(obj, rootEl, s);
+        }
+    } else {
+        process(obj, rootEl, schema);
+    }
+    return obj;
+}
 
-    return process({}, dom.window.document.querySelector(":root"), schema);
+function getTextContent(el) {
+    return el.textContent;
+}
+
+// taken from https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace
+function getTextContentNormalised(el) {
+    let data = getTextContent(el);
+    data = data.replace(/[\t\n\r ]+/g, " ");
+    if (data[0] === " ") {
+        data = data.substring(1, data.length);
+    }
+    if (data[data.length - 1] === " ") {
+        data = data.substring(0, data.length - 1);
+    }
+    return data;
 }
 
 module.exports = {
     extract,
+    helpers: {
+        getTextContent,
+        getTextContentNormalised,
+    },
 };
