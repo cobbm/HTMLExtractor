@@ -3,7 +3,7 @@ Parse and extract data from HTML pages recursively using CSS selectors.
 
 This node.js library uses [jsdom](https://github.com/jsdom/jsdom) to parse HTML documents.
 
-# How to use this library?
+## How to use this library
 Import the library, create a 'schema' object describing how to process the HTML and call ``extract()``.
 
 Schema object takes the following form:
