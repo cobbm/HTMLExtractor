@@ -10,17 +10,17 @@ Schema objects take the following form:
 ```js
 {
   // Specify a CSS selector:
-  select: string | null,                 // select first matching element (aka document.querySelector())
+  select: string | null,                 // select first matching element (aka document.querySelector()).
   // -- OR --
-  selectAll: string | null,              // select all matching elements (aka document.querySelectorAll())
+  selectAll: string | null,              // select all matching elements (aka document.querySelectorAll()).
   
-  name: string | null,                   // key in the resulting object
-  transform: function(element) | null,   // function that processes the matched element
-  skip: function(element) | null,        // if this function returns true, don't processing this element or any of it's children
-  children: [ ... ] | null               // schema objects to be run on all elements matched by select/selectAll
+  name: string | null,                   // key in the resulting object.
+  transform: function(element) | null,   // function that processes the matched element.
+  skip: function(element) | null,        // if this function returns true, don't processing this element or any of it's children.
+  children: [ ... ] | null               // schema objects to be run on matched element(s).
 }
 ```
-All fields in the schema object are optional, however either `select` or `selectAll` *must* be defined
+All fields in the schema object are optional, however either `select` or `selectAll` *must* be defined.
 ## Basic Example
 Please check `schemas.js` and `server.js` for a more complete example on how to use this library.
 ```js
