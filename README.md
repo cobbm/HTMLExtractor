@@ -7,22 +7,23 @@ This node.js library uses [jsdom](https://github.com/jsdom/jsdom) to parse HTML 
 Import the library, create a 'schema' object describing how to process the HTML and call ``extract()``.
 
 Schema object takes the following form:
-```
+```js
 {
   // Specify a CSS selector:
-  select: string,                 // select first matching element (aka document.querySelector())
+  select: string | null,                 // select first matching element (aka document.querySelector())
   // -- OR --
-  selectAll: string,              // select all matching elements (aka document.querySelectorAll())
+  selectAll: string | null,              // select all matching elements (aka document.querySelectorAll())
   
-  name: string,                   // key in the resulting object
-  transform: function(element),   // function that processes the matched element
-  skip: function(element),        // if this function returns true, don't processing this element or any of it's children
-  children: [ ... ]               // schema objects to be run on all elements matched by select/selectAll
+  name: string | null,                   // key in the resulting object
+  transform: function(element) | null,   // function that processes the matched element
+  skip: function(element) | null,        // if this function returns true, don't processing this element or any of it's children
+  children: [ ... ] | null               // schema objects to be run on all elements matched by select/selectAll
 }
 ```
+All fields in the schema object are optional, however either `select` or `selectAll` *must* be defined
 ## Basic Example
 Please check `schemas.js` and `server.js` for a more complete example on how to use this library.
-```
+```js
 const extractor = require("HTMLExtractor");
 
 const schema = {
