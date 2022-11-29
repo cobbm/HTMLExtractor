@@ -16,7 +16,7 @@ function processElement(element, schema) {
     }
     if (el != null) {
         if (children != null) {
-            return { el, children };
+            return { element: el, children };
         } else {
             return el;
         }
@@ -31,23 +31,25 @@ function processElement(element, schema) {
 
 function process(obj, parentElement, schema) {
     if (schema == null) return null;
+    const name = schema.name ?? "element";
 
     if (schema.select) {
         var e = processElement(parentElement.querySelector(schema.select), schema);
         if (e != null) {
-            if (obj[schema.name] != null) {
-                if (Array.isArray(obj[schema.name])) {
-                    obj[schema.name].push(e);
+            if (obj[name] != null) {
+                if (Array.isArray(obj[name])) {
+                    obj[name].push(e);
                 } else {
                     throw new Error("Key clash!");
                 }
             } else {
-                obj[schema.name] = e;
+                // if(Array.isArray(obj[name]))
+                obj[name] = e;
             }
         }
     } else if (schema.selectAll) {
-        if (obj[schema.name] == null) obj[schema.name] = [];
-        obj[schema.name] = obj[schema.name].concat(
+        if (obj[name] == null) obj[schema.name] = [];
+        obj[name] = obj[schema.name].concat(
             Array.from(parentElement.querySelectorAll(schema.selectAll))
                 .map((x) => processElement(x, schema))
                 .filter((x) => x != null)
