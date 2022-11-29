@@ -22,7 +22,7 @@ Schema objects take the following form:
 ```
 All fields in the schema object are optional, however either `select` or `selectAll` *must* be defined.
 ## Basic Example
-Please check `schemas.js` and `server.js` for a more complete example on how to use this library.
+Please check `schemas.js` and `server.js` for a more complete example showing how to use this library.
 ```js
 const extractor = require("HTMLExtractor");
 
