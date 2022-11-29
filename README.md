@@ -66,4 +66,4 @@ var data = extractor.extract(html, schema);
 
 ## Licence
 
-This software is licensed under the MIT license
+This software is licensed under the MIT license.
