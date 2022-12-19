@@ -1,77 +1,92 @@
 const jsdom = require("jsdom");
 
-function processElement(element, schema) {
-    if (element == null) return null;
-    if (typeof schema.skip == "function") {
-        if (schema.skip(element)) return null;
-    }
-    var el = typeof schema.transform == "function" ? schema.transform(element) : null;
+function process(element, schemaEl) {
+    var e = null;
+    var hasTransform = false;
+    var ch = null;
+    var hasChildren = false;
+    if (element == null)
+        return null;
 
-    var children = null;
-    if (schema.children && Array.isArray(schema.children)) {
-        children = {};
-        for (var ch of schema.children) {
-            process(children, element, ch);
-        }
+    if (typeof schemaEl.skip == "function") {
+        if (schemaEl.skip(element))
+            return undefined;
     }
-    if (el != null) {
-        if (children != null) {
-            return { element: el, children };
+    if (typeof schemaEl.transform == "function") {
+        hasTransform = true;
+        e = schemaEl.transform(element);
+    }
+    if (typeof schemaEl.children != "undefined" && Array.isArray(schemaEl.children)) {
+        hasChildren = true;
+        ch = reduceChildren(element, schemaEl.children, {});
+    }
+    var r = {};
+    if (hasTransform) {
+        if (hasChildren) {
+            r.result = e;
+            r.children = ch;
         } else {
-            return el;
+            r = e;
         }
     } else {
-        if (children != null) {
-            return children;
+        if (hasChildren) {
+            r = ch;
         } else {
-            return null;
+            r = null;
         }
+    }
+    return r;
+}
+
+function extractElement(element, schemaEl) {
+    if (typeof schemaEl.select != "undefined") {
+        const matched = element.querySelector(schemaEl.select);
+        return process(matched, schemaEl);
+    } else if (typeof schemaEl.selectAll != "undefined") {
+        const matched = Array.from(element.querySelectorAll(schemaEl.selectAll));
+        return matched.map((v, i) => {
+            return process(v, schemaEl);
+        }).filter((x) => typeof (x) !== "undefined")
+    } else {
+        throw new Error(`Schema must contain either 'select' or 'selectAll'!`);
     }
 }
 
-function process(obj, parentElement, schema) {
-    if (schema == null) return null;
-    const name = schema.name ?? "element";
-
-    if (schema.select) {
-        var e = processElement(parentElement.querySelector(schema.select), schema);
-        if (e != null) {
-            if (obj[name] != null) {
-                if (Array.isArray(obj[name])) {
-                    obj[name].push(e);
-                } else {
-                    throw new Error("Key clash!");
+function reduceChildren(element, schemaArr, obj) {
+    function reduceImpl(prev, curr, idx, arr) {
+        const name = curr.name ?? "element";
+        const r = extractElement(element, curr);
+        if (typeof (r) !== "undefined") {
+            if (typeof prev[name] == "undefined") {
+                prev[name] = r;
+            }
+            else if (typeof prev[name] == "object") {
+                //object with given key already exists in result object!
+                if (!Array.isArray(prev[name])) {
+                    prev[name] = [prev[name]];
                 }
-            } else {
-                // if(Array.isArray(obj[name]))
-                obj[name] = e;
+                if (Array.isArray(r)) {
+                    prev[name] = prev[name].concat(r);
+                } else {
+                    prev[name].push(r);
+                }
             }
         }
-    } else if (schema.selectAll) {
-        if (obj[name] == null) obj[schema.name] = [];
-        obj[name] = obj[schema.name].concat(
-            Array.from(parentElement.querySelectorAll(schema.selectAll))
-                .map((x) => processElement(x, schema))
-                .filter((x) => x != null)
-        );
-    } else {
-        throw new Error("Invalid Schema!");
+        return prev;
     }
-    return obj;
+    return schemaArr.reduce(reduceImpl, obj);
 }
 
 function extract(htmlString, schema) {
     const dom = new jsdom.JSDOM(htmlString);
-    var obj = {};
     var rootEl = dom.window.document.querySelector(":root");
-    if (Array.isArray(schema)) {
-        for (var s of schema) {
-            process(obj, rootEl, s);
-        }
+    var s;
+    if (!Array.isArray(schema)) {
+        s = [schema];
     } else {
-        process(obj, rootEl, schema);
+        s = schema;
     }
-    return obj;
+    return reduceChildren(rootEl, s, {});
 }
 
 function getTextContent(el) {
@@ -93,6 +108,7 @@ function getTextContentNormalised(el) {
 
 module.exports = {
     extract,
+    extractElement,
     helpers: {
         getTextContent,
         getTextContentNormalised,
